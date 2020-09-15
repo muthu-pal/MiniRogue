@@ -1,0 +1,148 @@
+Muthu Palaniappan
+UID: 005292734
+
+
+Project 3 Report
+1. My goblin function is in Arena.cpp and it is called goblinSmell. 
+2. My program’s description:
+   1. The files I have are as follows:
+      1. Main.cpp
+         1. Runs the main to play the game
+      2. Arena.cpp // Arena.h
+         1. Constructs the arena and monsters and objects; controls everything but the player’s stats basically. There is a pointer to a player member which is how the player data is taken into the various functions and controlled in the game. Game also calls the arena in order for play to work. Arena contains functions such as display, attack, wield scroll, set level, etc. It also has members that are a list of the monsters on the board and objects on the board. This is the bulk of how the game operates.  
+      3. Actors.cpp // Actors.h
+         1. Contains the class Actor, which includes monsters and players. This mostly involves getters and setters, but there are functions for the player movement and holding player inventory because we always want that attached to our player. 
+      4. gameObjects.cpp // gameObjects.h
+         1. Contains the scroll and weapons and staircase and golden idol class. The .cpp only contains getters and setters for the class members.
+      5. Utilities.cpp // utilities.h
+         1. Code given to us; controls things such as randInt or getCharacter()
+      6. Game.cpp // game.h
+         1. The actual game function is stored here. Once a character is gotten in game play() it hands it off to the functions in the actor.cpp and arena.cpp. The game constructor is only run once, at the beginning of level 0. This class also has a member that is an arena pointer. Game uses the arena class and utilities class.
+Pseudocode:
+Game.cpp:
+1. Game(int smellDist) // the constructor
+        Create an arena based on the goblin smell distance
+        Find a random empty spot that is not a wall
+                Set the player’s coordinates to that spot
+2. Game play() //play function
+        Run the display function so we see the grid
+        Grab the player from the arena
+        While the game has not been won or the player has not died:
+                Based on what the user inputs on the keyboard run various cases to move, see inventory, etc
+        If the player has won, say a statement
+        If a player has lost, say a statement
+        Only exit the game if a q is pressed
+Actors.cpp:
+   1. playerMove () //responsible for moving player or reacting to other characters
+        Grab the player from the arena
+        Switch case based on what was entered in getCharacter
+                If char was down:
+                        If the sleep time is higher than zero, don’t move the player; that is the turn
+                        If the spot down from the player’s current spot is empty, move the player there
+                        If the spot down from the player is a monster, let the player attack the monster
+                If char was up, right, or left: do the same logic as the down case ^^^
+                If the char was a c, let the player cheat and change their stats
+                If the char was a g, let the player pick up an item
+                If the char was a i, switch to inventory screen and get another character to switch the screen back to the display
+                If the char was a r or w, let the player read a scroll or weild a weapon
+                If the char was a >: move to the next level
+                If the char was none of the above: do nothing
+        Allow the player to heal 
+        Let the monster move
+        Show the display of the board
+   2. readScroll() //reads the scroll if the player chooses to and changes stats
+        Fetch the name of the scroll trying to be read
+        If its a teleportation scroll
+                Move the player to a random empty spot
+        If it is any other scroll
+                Do the respective equation to change the respective stats
+
+
+Arena.cpp:
+      1. Arena() //constructor
+        Set the cell statuses to wall or empty
+        Add monsters in random locations
+        Add objects in random locations
+      2. display() //responsible for the appearance of the grid
+        Create a char grid that will translate the integers from our arena member grid based on cell status
+        Switch statement that determines what to set displayGrid’s coordinates to based on the cell statuses of our arena grid member
+        Use for loop to iterate through object list and change displayGrid’s coordinates to the respective symbols of the various objects at their given coordinate
+        Use for loop to iterate through monster list and change displayGrid’s coordinates to the respective symbols of the various monsters at their given coordinate
+        Make sure player’s coordinates are an ‘@’ on the display grid
+        Clear the screen and cout<< the displayGrid
+        Add statements that tell you the player’s stats
+        Look at the action log and print the statements from that to get the lines that describe the actions of what is going on in the game, clear the queue after you print the line
+      3. addObject() //adds object in the start of a level
+        Using a for loop that looks at the amount of objects based on a level,
+        Create new objects and add them to the growing list of current game objects
+        Staircases and golden idol only appear during certain levels, so make sure to check for the level before adding those to the list
+        Set the spot of the object to a random location that is empty
+      4. addMonster() //adds the monsters in the start of a level
+        Using a for loop that looks at the amount of monsters based on a level,
+        Create new monsters and add them to the growing list of current game monsters
+        Certain monsters (bogeyman and dragon) only appear during certain levels, so make sure to check for the level before adding those to the list
+        Set the spot of the monster to a random location that is empty
+      5. monsterMove() //dictates how the monsters move
+        Similar to player move except we are using monsters (look at the pseudocode in actor.cpp for that). Each monster has a different smell distance so take that into account when checking if it is possible to move towards a player.
+        Dragon does not move, but it does heal, so add code to add to dragon’s points if the randInt is the correct number
+        If the monster is next to the player, attack it. 
+      6. smell() //dictates how far the monster can smell you to start moving
+        Determines the position of player and of monster
+        Determines the number of moves to get to the player and checks if that is within the smell distance of the given monster
+      7. moveDir //tells monster which way to move
+        Takes in the monster’s row and col
+        Checks the relative position of monster in terms of player’s pos using math (for instance if the player is above the monster pRow would be less than mRow)
+        Based on that math, determine a direction the monster should move in to go towards the player
+      8. goblinSmell //special recursive smell for goblin
+        Get the player’s row and column
+        If the goblin is at the same coordinate as the player, just return
+        With a similar mechanic to the direction, check if the goblin is above, below, left, or right of the player
+        Recursively check if the goblin advances in the direction just determined if they reach the player; if so, push that direction onto a queue and return true
+//later on the queue is used to determine the direction a goblin moves in monsterMove
+      9. isNext //determines whether the monster is next to a player
+      10. Attack //for monsters and players
+        Take in a Actor pointer for the “hunter” and one for the “prey” (if the player is attacking they would be the hunter and the monster would be the prey for example)
+        Get the statistics for the weapon being used
+        Determine the expression for the randomInt chance that an actor attacks and hits or misses
+        If the randInt matches the number to attack,
+                Change the defender and attacker’s stats based on the equation given to determine new stat values
+        If the randInt does not match the number to attack,
+                Don’t attack
+        If the attacker is a monster and it is the snake woman
+                Calculate the possibility of putting the player to sleep
+        Check if the monster is dead; if it is, remove it from the monster lists
+        String together a statement for the action log and push it onto that queue
+      11. getMonster //returns monster at a coordinate passed into func
+      12. pickUpItem // for players when they press g
+        Iterate through the list of objects until we find the one the player is currently standing on and wants to pick up
+        If it is a staircase, you cannot pick that up so return
+        If it is the golden idol, you win the game
+        If the inventory list is already full, don’t let them pick anything up
+        Dynamic_cast to see if they are picking up a scroll or a weapon
+                Add the object to the player’s inventory list
+                Remove the object from the grid’s object list
+      13. showInv //shows the inventory screen
+      14. wieldInv //to wield a weapon when pressing w
+        Based on the character that the user inputs, move to that spot in the inventory list
+        If its a weapon, let them wield it and remove it from inventory list
+        If it’s a scroll, don’t let them wield it; you can’t wield scrolls! 
+      15. scrollRead //to read a scroll when pressing r
+        Based on the character that the user inputs, move to that spot in the inventory list
+        If its a scroll, let them read it and change stats based on the specific scroll
+        If it’s a weapon, don’t let them read it; you can’t read weapons! 
+      16. monstDrop //drops an object when a monster dies based on randInt
+      17. nextLevel //advances to next level if the player is on the staircase
+      18. resetGrid //responsible for actually changing the grid and creating new monsters and objects when advancing to a new level
+        Add to the level member to indicate an advance in level
+        Clear the monster list and object list to start fresh
+        Reset the monster amount based on the new level
+        Reset the grid statuses to wall or empty based on the newly generate rooms
+        Randomly place the player (it is not a new player; we maintain the same player through all 5 levels)
+        Add objects and add monsters randomly again
+      19. RandomRoom creation randCreateGrid()
+          create a vector of rooms
+	  set every space in the double array to wall
+	  assign a row, col (x,y, coord) and height and width to a room
+	  cycle through all the other rooms and make sure none overlap using math of coords
+          set the corridors using a for loop and making hallways at height/2 and width/2 -- always halfway into the room
+3. Known Bugs: I am not sure of any. I also did not forget to implement any features (to my knowledge).
